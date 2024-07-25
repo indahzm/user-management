@@ -40,8 +40,6 @@ public class UserServiceImpl implements UserService {
             UserEntity oldUser = findById(user.getId());
             user.setCreatedAt(oldUser.getCreatedAt());
             user.setCreatedById(oldUser.getCreatedById());
-            user.setUpdatedAt(oldUser.getUpdatedAt());
-            user.setUpdatedById(oldUser.getUpdatedById());
             user.setPassword(oldUser.getPassword());
 
         } else {

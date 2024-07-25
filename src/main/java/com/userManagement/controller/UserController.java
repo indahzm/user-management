@@ -17,8 +17,8 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<UserEntity>> getAllUser() {
-        List<UserEntity> userEntity = userService.findAll();
-        return ResponseEntity.ok(userEntity);
+        List<UserEntity> userList = userService.findAll();
+        return ResponseEntity.ok(userList);
     }
 
     @GetMapping("/{id}")
@@ -32,7 +32,7 @@ public class UserController {
         return ResponseEntity.ok(userService.save(user));
     }
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<UserEntity> updateUser(@PathVariable(required = true) String id, @RequestBody UserEntity user) {
         user.setId(id);
         return ResponseEntity.ok(userService.save(user));
@@ -41,10 +41,10 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable(required = true) String id) {
         userService.deleteById(id);
-        return ResponseEntity.ok("User delete successfully");
+        return ResponseEntity.ok("User is deleted successfully");
     }
 
-    @PostMapping("/edit-password/{id}")
+    @PutMapping("/edit-password/{id}")
     public ResponseEntity<String> updatePassword(@PathVariable(required = true) String id, @RequestBody UpdatePasswordRequest updatePasswordRequest) {
         updatePasswordRequest.setId(id);
         userService.updatePassword(updatePasswordRequest);
