@@ -9,6 +9,9 @@ public interface UserService {
     List<UserEntity> findAll();
     UserEntity save(UserEntity user);
     UserEntity findById(String id);
+
+    UserEntity findByUsername(String username);
     void deleteById (String id);
     void updatePassword(UpdatePasswordRequest updatePasswordRequest);
+
 }

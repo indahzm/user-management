@@ -9,12 +9,15 @@ import com.userManagement.service.UserService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -27,7 +30,7 @@ public class UserServiceImpl implements UserService {
     private EmailService emailService;
 
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public List<UserEntity> findAll() {
@@ -43,7 +46,7 @@ public class UserServiceImpl implements UserService {
             user.setPassword(oldUser.getPassword());
 
         } else {
-            Optional<UserEntity> userOpt = userRepository.findByEmail(user.getEmail());
+            Optional<UserEntity> userOpt = userRepository.findByUsername(user.getUsername());
             if(!userOpt.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user exist");
             }
@@ -53,16 +56,16 @@ public class UserServiceImpl implements UserService {
             user.setCreatedById("Current Session");
 
             String password = RandomStringUtils.randomAlphanumeric(8);
-            String passwordEncode = bCryptPasswordEncoder.encode(password);
+            String passwordEncode = passwordEncoder.encode(password);
             user.setPassword(passwordEncode);
             System.out.println("password" + password);
 
             EmailDetails emailDetails = new EmailDetails();
-            emailDetails.setRecipient(user.getEmail());
+            emailDetails.setRecipient(user.getUsername());
             emailDetails.setSubject("New User Password Info");
             emailDetails.setMessageBody("Selamat, anda sudah terdaftar di aplikasi User Management. Untuk login, silakan gunakan password berikut : \n" + password);
             emailDetails.setEndDate((new Date()).toString());
-            emailDetails.setUser(user.getEmail());
+            emailDetails.setUser(user.getUsername());
             emailService.sendEmail(emailDetails);
 
         }
@@ -78,6 +81,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserEntity findByUsername(String email) {
+        Optional<UserEntity> userOpt = userRepository.findByUsername(email);
+        return userOpt.isPresent() ? userOpt.get() : userOpt.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+    }
+
+    @Override
     public void deleteById(String id) {
         userRepository.deleteById(id);
     }
@@ -85,16 +94,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updatePassword(UpdatePasswordRequest updatePasswordRequest) {
         UserEntity user = findById(updatePasswordRequest.getId());
-        Boolean isMatch = bCryptPasswordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword());
+        Boolean isMatch = passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword());
         if (!isMatch) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your old password is not correct");
         }
         if(!updatePasswordRequest.getNewPassword().equalsIgnoreCase(updatePasswordRequest.getConfirmPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your new password and confirm password is not match, please check your input correctly.");
         }
-        user.setPassword(bCryptPasswordEncoder.encode(updatePasswordRequest.getNewPassword()));
+        user.setPassword(passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
         user.setUpdatedAt(new Date());
         user.setUpdatedById("Current Session");
         userRepository.save(user);
     }
+
 }

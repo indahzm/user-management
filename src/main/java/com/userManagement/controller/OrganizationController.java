@@ -32,13 +32,13 @@ public class OrganizationController {
         return ResponseEntity.ok(organizationService.save(organization));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/edit/{id}")
     public ResponseEntity<OrganizationEntity> updateOrganization(@PathVariable(required = true) String id, @RequestBody OrganizationEntity organization) {
         organization.setId(id);
         return ResponseEntity.ok(organizationService.save(organization));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteOrganization(@PathVariable(required = true) String id) {
         organizationService.deleteById(id);
         return ResponseEntity.ok("Organization is deleted successfully");

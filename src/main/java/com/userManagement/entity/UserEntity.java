@@ -6,10 +6,10 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "users")
-public class UserEntity extends BaseEntity{
+public class UserEntity extends BaseEntity {
 
-    @Column(name = "email")
-    private String email;
+    @Column(name = "username")
+    private String username;
 
     @Column(name = "password")
     private String password;
@@ -20,5 +20,4 @@ public class UserEntity extends BaseEntity{
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
-
 }
