@@ -32,13 +32,13 @@ public class UserController {
         return ResponseEntity.ok(userService.save(user));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/edit/{id}")
     public ResponseEntity<UserEntity> updateUser(@PathVariable(required = true) String id, @RequestBody UserEntity user) {
         user.setId(id);
         return ResponseEntity.ok(userService.save(user));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable(required = true) String id) {
         userService.deleteById(id);
         return ResponseEntity.ok("User is deleted successfully");

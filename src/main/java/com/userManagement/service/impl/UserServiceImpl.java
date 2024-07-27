@@ -4,6 +4,7 @@ import com.userManagement.entity.UserEntity;
 import com.userManagement.entity.model.EmailDetails;
 import com.userManagement.entity.model.UpdatePasswordRequest;
 import com.userManagement.repository.UserRepository;
+import com.userManagement.service.BaseService;
 import com.userManagement.service.EmailService;
 import com.userManagement.service.UserService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -21,7 +22,7 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends BaseService implements UserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -39,6 +40,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserEntity save(UserEntity user) {
+        UserEntity userLogin = getUserLogin();
         if(user.getId() != null) {
             UserEntity oldUser = findById(user.getId());
             user.setCreatedAt(oldUser.getCreatedAt());
@@ -53,7 +55,7 @@ public class UserServiceImpl implements UserService {
 
             user.setId(UUID.randomUUID().toString());
             user.setCreatedAt(new Date());
-            user.setCreatedById("Current Session");
+            user.setCreatedById(userLogin.getId());
 
             String password = RandomStringUtils.randomAlphanumeric(8);
             String passwordEncode = passwordEncoder.encode(password);
@@ -70,7 +72,7 @@ public class UserServiceImpl implements UserService {
 
         }
         user.setUpdatedAt(new Date());
-        user.setUpdatedById("Current Session");
+        user.setUpdatedById(userLogin.getId());
         return userRepository.save(user);
     }
 
@@ -93,6 +95,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updatePassword(UpdatePasswordRequest updatePasswordRequest) {
+        UserEntity userLogin = getUserLogin();
+        if (!userLogin.getId().equalsIgnoreCase(updatePasswordRequest.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not allowed to update this user password");
+        }
+
         UserEntity user = findById(updatePasswordRequest.getId());
         Boolean isMatch = passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword());
         if (!isMatch) {
@@ -103,7 +110,7 @@ public class UserServiceImpl implements UserService {
         }
         user.setPassword(passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
         user.setUpdatedAt(new Date());
-        user.setUpdatedById("Current Session");
+        user.setUpdatedById(userLogin.getId());
         userRepository.save(user);
     }
 

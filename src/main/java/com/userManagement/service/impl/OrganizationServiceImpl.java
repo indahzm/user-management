@@ -1,7 +1,11 @@
 package com.userManagement.service.impl;
 
 import com.userManagement.entity.OrganizationEntity;
+import com.userManagement.entity.Role;
+import com.userManagement.entity.UserEntity;
 import com.userManagement.repository.OrganizationRepository;
+import com.userManagement.repository.UserRepository;
+import com.userManagement.service.BaseService;
 import com.userManagement.service.OrganizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,10 +20,12 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class OrganizationServiceImpl implements OrganizationService {
+public class OrganizationServiceImpl extends BaseService implements OrganizationService {
 
     @Autowired
     private OrganizationRepository organizationRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Override
     public List<OrganizationEntity> findAll() {
         return organizationRepository.findAll();
@@ -33,6 +39,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public OrganizationEntity save(OrganizationEntity organization) {
+        UserEntity userLogin = getUserLogin();
         if(organization.getId() != null) {
             if(!isAllow(organization.getId())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not allowed to edit this organization");
@@ -43,10 +50,10 @@ public class OrganizationServiceImpl implements OrganizationService {
         } else {
             organization.setId(UUID.randomUUID().toString());
             organization.setCreatedAt(new Date());
-            organization.setCreatedById("Current Session");
+            organization.setCreatedById(userLogin.getId());
         }
         organization.setUpdatedAt(new Date());
-        organization.setUpdatedById("Current Session");
+        organization.setUpdatedById(userLogin.getId());
         return organizationRepository.save(organization);
     }
 
@@ -59,11 +66,12 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     public Boolean isAllow(String id) {
-        boolean isAllow = true;
-        if("user".equalsIgnoreCase("user")) {
+        UserEntity user = getUserLogin();
+        if(user.getRole().name().equalsIgnoreCase(Role.SUPER_ADMIN.toString())) {
+            return true;
+        } else {
             OrganizationEntity organization = findById(id);
-            isAllow = organization.getCreatedById().equalsIgnoreCase("Current User Session ") ? true : false;
+            return organization.getCreatedById().equalsIgnoreCase(user.getId());
         }
-        return isAllow;
     }
 }
